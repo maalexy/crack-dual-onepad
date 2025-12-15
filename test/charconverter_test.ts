@@ -1,27 +1,41 @@
-import { assertEquals } from "@std/assert/equals";
-import { decodeChar, encodeChar } from "../src/charconverter.ts";
+import { assert, assertEquals } from "@std/assert";
+import { addMod27, decodMod27, encodeMod27, subMod27 } from "../src/charconverter.ts";
 import { assertThrows } from "@std/assert/throws";
+import { MOD27 } from "../generated/charcode.g.ts";
 
-Deno.test("encode-decode-encode does not change", () => {
+Deno.test("mod27 encode-decode-encode does not change", () => {
     const start = "nagykutya es kiscica";
-    const encoded = encodeChar(start);
-    const decode = decodeChar(encoded);
+    const encoded = encodeMod27(start);
+    const decode = decodMod27(encoded);
     assertEquals(start, decode);
 })
 
-Deno.test("decode-encode-decode does not change", () => {
-    const start = [1, 2, 27, 3, 4];
-    const decoded = decodeChar(start);
-    const encoded = encodeChar(decoded);
+Deno.test("mod27 decode-encode-decode does not change", () => {
+    const start = [1, 2, 26, 3, 4];
+    const decoded = decodMod27(start);
+    const encoded = encodeMod27(decoded);
     assertEquals(start, encoded);
 })
 
-Deno.test("fail encode for unkown characters", () => {
+Deno.test("mod27 fail encode for unkown characters", () => {
     const start = "árvíztűrő tükörfúrógép";
-    assertThrows(() => encodeChar(start));
+    assertThrows(() => encodeMod27(start));
 })
 
-Deno.test("fail decode for bad code", () => {
-    const start = [1, 2, -5, 3, 4];
-    assertThrows(() => decodeChar(start));
+Deno.test("mod27 fail decode for bad code", () => {
+    assertThrows(() => decodMod27([1, 2, -5, 3, 4]));
+    assertThrows(() => decodMod27([1, 2, 27, 4]));
+    assertThrows(() => decodMod27([1, 2, 27, 4]));
+})
+
+Deno.test("mod27 add should stay mod27", () => {
+    for(const a of MOD27) for(const b of MOD27){
+        assert(addMod27(a, b) in MOD27);
+    }
+})
+
+Deno.test("mod27 sub should stay mod27", () => {
+    for(const a of MOD27) for(const b of MOD27){
+        assert(subMod27(a, b) in MOD27);
+    }
 })
