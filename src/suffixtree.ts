@@ -1,6 +1,6 @@
 import { EnglishChar, isEnglishChar } from "./charconverter.ts";
 
-type SuffixIndex = string;
+export type SuffixIndex = string;
 type SuffixNode = Map<EnglishChar, SuffixIndex>; // undefined means impossible step
 
 export class SuffixTree {
@@ -12,7 +12,7 @@ export class SuffixTree {
 
     getOrNew(si: SuffixIndex) : SuffixNode {
         if(!this.data.has(si)) {
-            this.data.set(si, new Map<EnglishChar, SuffixIndex>());
+            this.data.set(si, new Map());
         }
         return this.data.get(si)!;
     }
@@ -49,3 +49,10 @@ export class SuffixTree {
     }
 }
 
+export function loadDefaultLanguage() {
+    const texfile = Deno.readTextFileSync("data/words.txt");
+    const wordlist = texfile.split('\n');
+    const sf = new SuffixTree();
+    sf.addWordlist(wordlist);
+    return sf;
+}
