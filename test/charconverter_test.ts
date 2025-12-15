@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
-import { addMod27, decodMod27, encodeMod27, subMod27 } from "../src/charconverter.ts";
+import { addMod27, decodMod27, encodeMod27, isEnglishChar, subMod27 } from "../src/charconverter.ts";
 import { assertThrows } from "@std/assert/throws";
-import { MOD27 } from "../generated/charcode.g.ts";
+import { INDEX_CHAR, INDEX_MOD27 } from "../generated/charcode.g.ts";
 
 Deno.test("mod27 encode-decode-encode does not change", () => {
     const start = "nagykutya es kiscica";
@@ -29,13 +29,18 @@ Deno.test("mod27 fail decode for bad code", () => {
 })
 
 Deno.test("mod27 add should stay mod27", () => {
-    for(const a of MOD27) for(const b of MOD27){
-        assert(addMod27(a, b) in MOD27);
+    for(const a of INDEX_MOD27) for(const b of INDEX_MOD27){
+        assert(INDEX_MOD27.includes(addMod27(a, b)));
     }
 })
 
 Deno.test("mod27 sub should stay mod27", () => {
-    for(const a of MOD27) for(const b of MOD27){
-        assert(subMod27(a, b) in MOD27);
+    for(const a of INDEX_MOD27) for(const b of INDEX_MOD27){
+        assert(INDEX_MOD27.includes(subMod27(a, b)));
     }
+})
+
+Deno.test("a is an English character", () => {
+    assert(INDEX_CHAR.includes('a'));
+    assert(isEnglishChar('a'));
 })

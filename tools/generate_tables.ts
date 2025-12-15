@@ -12,12 +12,22 @@ function generateMod27List() {
     for(let i = 0; i <= 26; i++) {
         mod27list.push(i);
     }
-    const tscode = `export const MOD27 = [${mod27list.join(',')}] as const;\n`;
+    const tscode = `export const INDEX_MOD27 = [${mod27list.join(',')}] as const;\n`;
     return tscode;
 }
 
-console.log(generateCharcodeTable())
+function generateIndexCharTable() {
+    const indexCharTable = [];
+    for(let i = 0; i <= 25; i++) {
+        indexCharTable.push(String.fromCharCode(97 + i));
+    }
+    indexCharTable.push(' ')
+    const tscode = `export const INDEX_CHAR = ['${indexCharTable.join("','")}'] as const;\n`;
+    return tscode;
+}
+
 Deno.writeTextFileSync("generated/charcode.g.ts", 
     generateCharcodeTable() +
-    generateMod27List()
+    generateMod27List() +
+    generateIndexCharTable()
 );

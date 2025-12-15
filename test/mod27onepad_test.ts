@@ -14,7 +14,6 @@ Deno.test("test email example", () => {
     const key = "abcdefgijkl";
     const expectedSecret = "hfnosauzun";
     const secret = encodeOnepad(text, key);
-    console.log(secret);
     assertEquals(secret, expectedSecret);
     const decodedText = decodeOnepad(expectedSecret, key);
     assertEquals(decodedText, text);
