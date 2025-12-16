@@ -26,6 +26,8 @@ function generateIndexCharTable() {
     return tscode;
 }
 
+Deno.removeSync('generated', {recursive: true}); // clean
+Deno.mkdir('generated');
 Deno.writeTextFileSync("generated/charcode.g.ts", 
     generateCharcodeTable() +
     generateMod27List() +

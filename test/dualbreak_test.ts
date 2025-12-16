@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert/equals";
-import { breakTwo, clearEndMask, dualFilterLanguage, maskedBreakTwo, walkbackMultiLookback } from "../src/dualbreak.ts";
+import { breakTwo, clearEndMask, dualFilterLanguage, maskedBreakTwo, singleFilterLanguage, walkbackMultiLookback, walkbackMultiSingleLookback } from "../src/dualbreak.ts";
 import { loadDefaultLanguage } from "../src/suffixtree.ts";
 import { encodeOnepad } from "../src/mod27onepad.ts";
 
@@ -27,6 +27,14 @@ Deno.test("same languge gen for 2 char", () => {
     assertEquals(poss.length, 51984); 
 });
 
+Deno.test("single sentence geneartion", () => {
+    const sf = loadDefaultLanguage();
+    const lbarr = singleFilterLanguage(sf, 8);
+    assertEquals(lbarr.length, 7904);
+    const poss = walkbackMultiSingleLookback(lbarr);
+    assertEquals(poss.length, 3332249);
+});
+
 Deno.test("break two secret messege", () => {
     const clear1 = "curiosity killed the cat hi";
     const clear2 = "early bird catches the worm";
@@ -52,7 +60,7 @@ Deno.test("break two secret messege", () => {
 Deno.test("break two messeages with an additional mask", () => {
     const clear1 = "curiosity killed the cat";
     const clear2 = "early bird catches the worm";
-    const keykey = "jvui dsoia rfesad ogra rsdy";
+    const keykey = "jvui dsoia rfesadbfb ogra rsdy";
     const lang = loadDefaultLanguage();
     const secret1 = encodeOnepad(clear1, keykey);
     const secret2 = encodeOnepad(clear2, keykey);

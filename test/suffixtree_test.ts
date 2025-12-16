@@ -1,6 +1,6 @@
 
 import { loadDefaultLanguage, SuffixTree } from "../src/suffixtree.ts";
-import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
+import { assert, assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 
 Deno.test("load words.txt into a suffix tree", () => {
     loadDefaultLanguage();
@@ -19,3 +19,12 @@ Deno.test("fail for unknown entriy", () => {
     assertThrows(() => sf.getSafe("unknowner"));
     assertThrows(() => sf.nexts("unknowner"));
 });
+
+Deno.test("test that a word end", () => {
+    const sf = loadDefaultLanguage();
+
+    const sentence = "test that a word end";
+    const pos = sf.walk(sentence);
+    assertEquals(pos, "end");
+    assert(sf.isTerminal(pos));
+})

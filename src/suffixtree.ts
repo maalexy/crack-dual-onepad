@@ -47,6 +47,21 @@ export class SuffixTree {
     nexts(si: SuffixIndex) {
         return this.getSafe(si).entries();
     }
+
+    isTerminal(si: SuffixIndex) {
+        return this.getSafe(si).has(' '); // space char goes home, ends words
+    }
+
+    head() : SuffixIndex { return "" };
+    walk(str: string) : SuffixIndex {
+        let curr = this.head();
+        for(const char of str) {
+            const nextMap = this.getSafe(curr) 
+            if(!isEnglishChar(char) || !nextMap.has(char)) throw Error(`Not in this language: ${str}`);
+            curr = nextMap.get(char)!;
+        }
+        return curr;
+    }
 }
 
 export function loadDefaultLanguage() {
