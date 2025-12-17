@@ -13,25 +13,12 @@ type DualLookback = {
 function walkbackDualLookback(lb : DualLookback) : [string, string][] {
     if(lb.prev.length == 0) return [['', '']] // terminator
 
-    const possibilities: [string, string][] = [];
-    for(const lprev of lb.prev) {
-        const prevPoss = walkbackDualLookback(lprev);
-        for(const [text1, text2] of prevPoss) {
-            possibilities.push([text1 + lb.c1, text2 + lb.c2]);
-        }
-    }
-    return possibilities;
+    return lb.prev.flatMap((lprev) =>
+        walkbackDualLookback(lprev).map(([text1, text2]): [string, string] => 
+            [text1 + lb.c1, text2 + lb.c2]
+    ));
 }
-export function walkbackMultiLookback(lbarr : DualLookback[]): [string, string][] {
-    const possibilities: [string, string][] = [];
-    for(const lb of lbarr) {
-        const prevPosses = walkbackDualLookback(lb);
-        for(const poss of prevPosses) {
-            possibilities.push(poss);
-        }
-    }
-    return possibilities;
-}
+export const walkbackMultiLookback = (lbarr : DualLookback[]): [string, string][] => lbarr.flatMap((lb) => walkbackDualLookback(lb));
 
 export function dualFilterLanguage(language: SuffixTree, len: number,
     filterFun: (charPair: [EnglishChar, EnglishChar], index: number) => boolean) 
@@ -72,14 +59,10 @@ type SingleLookback = {
 export function walkbackSingleLookback(lb: SingleLookback) : string[] {
     if(lb.prev.length == 0) return ['']; // terminator    
 
-    const possibilities: string[] = [];
-    for(const lprev of lb.prev) {
-        const prevPoss = walkbackSingleLookback(lprev);
-        for(const text of prevPoss) {
-            possibilities.push(text + lb.c);
-        }
-    }
-    return possibilities;
+    return lb.prev.flatMap((lprev) =>
+        walkbackSingleLookback(lprev).map( (text) =>
+            text + lb.c
+    ));
 }
 export const walkbackMultiSingleLookback = (lbarr: SingleLookback[]) => lbarr.flatMap(lb => walkbackSingleLookback(lb));
 export function singleFilterLanguage(lang: SuffixTree, len: number, start?: string,
@@ -89,9 +72,10 @@ export function singleFilterLanguage(lang: SuffixTree, len: number, start?: stri
 
     let possibilities: SingleLookback[] = [{c: ' ', si: startsi, prev: []}]
     for(let ix = start?.length ?? 0; ix < len; ix++) {
+        console.log(ix, start, " ", possibilities, " ", len);
         const nextPossibilities = new Map<SuffixIndex, SingleLookback>();
         for(const poss of possibilities) {
-            for(const [nc, nsi] of lang.getSafe(poss.si)) {
+            for(const [nc, nsi] of lang.nexts(poss.si)) {
                 if(nextPossibilities.has(nsi)) {
                     nextPossibilities.get(nsi)!.prev.push(poss);
                 } else {
@@ -102,6 +86,7 @@ export function singleFilterLanguage(lang: SuffixTree, len: number, start?: stri
             }
         }
         possibilities = nextPossibilities.values().filter(({c}) => filterFun(c, ix)).toArray();
+        console.log(ix, start, " ", possibilities, " ", len);
     }
     return possibilities;
 }
@@ -136,9 +121,9 @@ function noMask(secret: string) {
 }
 
 export function maskedBreakTwo(lang: SuffixTree, secret1: string, secret2: string, 
-    masks: {mask1?: string, mask2?: string, 
+    masks?: {mask1?: string, mask2?: string, 
         maskFun?: (charPair: [EnglishChar, EnglishChar], index: number) => boolean}) {
-    
+    masks ??= {};
     let {mask1, mask2, maskFun} = masks;
     mask1 ??= noMask(secret1);
     mask2 ??= noMask(secret2);
@@ -159,9 +144,6 @@ export function maskedBreakTwo(lang: SuffixTree, secret1: string, secret2: strin
     )
     
     const wl = walkbackMultiLookback(lbarr);
-    /* doesn't work // remove excess at the ends
-    return wl.map(([g1, g2]) => [g1.substring(0, secret1.length), g2.substring(0, secret2.length)])
-    */
     if(code1.length < code2.length) {
         const wlExtended: [string, string][] = [];
         for(const [text1, text2] of wl) {
@@ -173,8 +155,8 @@ export function maskedBreakTwo(lang: SuffixTree, secret1: string, secret2: strin
     } else if(code1.length > code2.length) {
         const wlExtended: [string, string][] = [];
         for(const [text1, text2] of wl) {
-            for(const ext of extendPartialMatch(lang, text1, code1.length, mask2)) {
-                wlExtended.push([ext, text2 + ext]);
+            for(const ext of extendPartialMatch(lang, text1, code1.length, mask1)) {
+                wlExtended.push([text1 + ext, text2]);
             }
         }
         return wlExtended

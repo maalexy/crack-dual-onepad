@@ -10,7 +10,7 @@ export class SuffixTree {
         this.data = new Map();
     }
 
-    getOrNew(si: SuffixIndex) : SuffixNode {
+    private getOrNew(si: SuffixIndex) : SuffixNode {
         if(!this.data.has(si)) {
             this.data.set(si, new Map());
         }
@@ -62,12 +62,12 @@ export class SuffixTree {
         }
         return curr;
     }
-}
 
-export function loadDefaultLanguage() {
-    const texfile = Deno.readTextFileSync("data/words.txt");
-    const wordlist = texfile.split('\n');
-    const sf = new SuffixTree();
-    sf.addWordlist(wordlist);
-    return sf;
+    public static loadDefaultLanguage() {
+        const texfile = Deno.readTextFileSync("data/words.txt");
+        const wordlist = texfile.split('\n');
+        const sf = new SuffixTree();
+        sf.addWordlist(wordlist);
+        return sf;
+    }
 }

@@ -1,10 +1,10 @@
 import { assertEquals } from "@std/assert/equals";
 import { breakTwo, clearEndMask, dualFilterLanguage, maskedBreakTwo, singleFilterLanguage, walkbackMultiLookback, walkbackMultiSingleLookback } from "../src/dualbreak.ts";
-import { loadDefaultLanguage } from "../src/suffixtree.ts";
+import { SuffixTree } from "../src/suffixtree.ts";
 import { encodeOnepad } from "../src/mod27onepad.ts";
 
 Deno.test("languge gen for 3 char", () => {
-    const sf = loadDefaultLanguage();
+    const sf = SuffixTree.loadDefaultLanguage();
     const lbarr = dualFilterLanguage(sf, 3, () => true); // 27^6 ~= 387M
     assertEquals(lbarr.length, 1493284); // 1.5M because of word constraints
     const poss = walkbackMultiLookback(lbarr);
@@ -12,15 +12,15 @@ Deno.test("languge gen for 3 char", () => {
 });
 
 Deno.test("same languge gen for 6 char", () => {
-    const sf = loadDefaultLanguage();
+    const sf = SuffixTree.loadDefaultLanguage();
     const lbarr = dualFilterLanguage(sf, 6, ([c1, c2]) => c1 == c2); // 27^6 ~= 387M
     assertEquals(lbarr.length, 6029); // 6K
     const poss = walkbackMultiLookback(lbarr);
-    assertEquals(poss.length, 132877); // 6K
+    assertEquals(poss.length, 132877); // 132K "cat ??" and "dog ??" was unmerged at position 4
 });
 
 Deno.test("same languge gen for 2 char", () => {
-    const sf = loadDefaultLanguage();
+    const sf = SuffixTree.loadDefaultLanguage();
     const lbarr = dualFilterLanguage(sf, 2, () => true); // 27^4 = 531K
     assertEquals(lbarr.length, 51076); 
     const poss = walkbackMultiLookback(lbarr);
@@ -28,7 +28,7 @@ Deno.test("same languge gen for 2 char", () => {
 });
 
 Deno.test("single sentence geneartion", () => {
-    const sf = loadDefaultLanguage();
+    const sf = SuffixTree.loadDefaultLanguage();
     const lbarr = singleFilterLanguage(sf, 8);
     assertEquals(lbarr.length, 7904);
     const poss = walkbackMultiSingleLookback(lbarr);
@@ -41,7 +41,7 @@ Deno.test("break two secret messege", () => {
     const keykey = "jvui dsoia rfesad ogra rsdy";
     const secret1 = encodeOnepad(clear1, keykey);
     const secret2 = encodeOnepad(clear2, keykey);
-    const lang = loadDefaultLanguage();
+    const lang = SuffixTree.loadDefaultLanguage();
     const possiblePairs = breakTwo(lang, secret1, secret2);
     
     assertEquals(possiblePairs, [
@@ -61,11 +61,12 @@ Deno.test("break two messeages with an additional mask", () => {
     const clear1 = "curiosity killed the cat";
     const clear2 = "early bird catches the worm";
     const keykey = "jvui dsoia rfesadbfb ogra rsdy";
-    const lang = loadDefaultLanguage();
+    const lang = SuffixTree.loadDefaultLanguage();
     const secret1 = encodeOnepad(clear1, keykey);
     const secret2 = encodeOnepad(clear2, keykey);
 
-    console.log(clearEndMask("worm", secret2));
-    const res = maskedBreakTwo(lang, secret1, secret2, {mask2: clearEndMask("worm", secret2)})
-    console.log(res);
+    const res = maskedBreakTwo(lang, secret1, secret2, {mask2: clearEndMask("worm", secret2)});
+    const resSwitch = maskedBreakTwo(lang, secret2, secret1, {mask1: clearEndMask("worm", secret2)});
+    assertEquals(res, [["curiosity killed the cat", "early bird catches the worm"]]);
+    assertEquals(res, resSwitch.map(([t1, t2]) => [t2, t1]));
 });
