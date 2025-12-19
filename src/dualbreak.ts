@@ -123,15 +123,17 @@ export function breakTwo(lang: PrefixTree, secret1: string, secret2: string,
     for(let ix = 0; ix < diffLen; ix++) {
         diff[ix] = subMod27(code1[ix], code2[ix]);
     }
-    const lbarr = dualFilterLanguage(lang, diffLen, ([c1, c2], ix) =>
+    const lbarrUnterm = dualFilterLanguage(lang, diffLen, ([c1, c2], ix) =>
         (subMod27(CHARCODE_TABLE[c1], CHARCODE_TABLE[c2]) == diff[ix])
         && (mask1[ix] == '?' || mask1[ix] == c1)
         && (mask2[ix] == '?' || mask2[ix] == c2)
     )
+    const lbarr = lbarrUnterm.filter((lb) => lang.isTerminal(lb.si2));
 
-    const lbcont = singleContinuationFilterLanguage(
+    const lbcontUnterm = singleContinuationFilterLanguage(
         lang, secret1.length, secret2.length, lbarr,
         (c1: EnglishChar, ix: number) => mask1[ix] == '?' || mask1[ix] == c1);
+    const lbcont = lbcontUnterm.filter((lb) => lang.isTerminal(lb.si1))
     const possibilities = walkbackLookbackArray(lbcont);
     return possibilities;
 }

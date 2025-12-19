@@ -76,15 +76,7 @@ Deno.test("break two secret messages (masked function with no mask)", () => {
     const possiblePairs = breakTwo(lang, secret1, secret2);
     
     assertEquals(possiblePairs, [
-        [ "curiosity killed the cap be", "early bird catches the soli" ],
-        [ "curiosity killed the cap br", "early bird catches the solv" ],
-        [ "curiosity killed the cap ca", "early bird catches the some" ],
-        [ "curiosity killed the cap kn", "early bird catches the sour" ],
-        [ "curiosity killed the cap le", "early bird catches the sovi" ],
-        [ "curiosity killed the cap qu", "early bird catches the so y" ],
-        [ "curiosity killed the cap te", "early bird catches the soci" ],
-        [ "curiosity killed the cat hi", "early bird catches the worm" ],
-        [ "curiosity killed thus false", "early bird catches i bed bi" ]
+        [ "curiosity killed the cat hi", "early bird catches the worm" ]
     ]);
 })
 
