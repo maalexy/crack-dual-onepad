@@ -1,7 +1,9 @@
 import { assertEquals } from "@std/assert/equals";
-import { unmaskedBreakTwo, clearEndMask, dualFilterLanguage, breakTwo, singleContinuationFilterLanguage, singleFilterLanguage, walkbackLookbackArray } from "../src/dualbreak.ts";
+import { clearEndMask, dualFilterLanguage, breakTwo, singleContinuationFilterLanguage, walkbackLookbackArray } from "../src/dualbreak.ts";
 import { PrefixTree } from "../src/prefixtree.ts";
 import { encodeOnepad } from "../src/mod27onepad.ts";
+import { encodeMod27, subMod27 } from "../src/charconverter.ts";
+import { CHARCODE_TABLE } from "../generated/charcode.g.ts";
 
 Deno.test("languge gen for 3 char", () => {
     const sf = PrefixTree.loadDefaultLanguage();
@@ -42,7 +44,14 @@ Deno.test("break two secret message", () => {
     const secret1 = encodeOnepad(clear1, keykey);
     const secret2 = encodeOnepad(clear2, keykey);
     const lang = PrefixTree.loadDefaultLanguage();
-    const possiblePairs = unmaskedBreakTwo(lang, secret1, secret2);
+    
+    const code1 = encodeMod27(secret1);
+    const code2 = encodeMod27(secret2);
+    const diff = code1.map((val, ix) => subMod27(val, code2[ix]));
+    const lbarr = dualFilterLanguage(lang, diff.length, ([c1, c2], ix) =>
+        subMod27(CHARCODE_TABLE[c1], CHARCODE_TABLE[c2]) == diff[ix]
+    )
+    const possiblePairs = walkbackLookbackArray(lbarr);
     
     assertEquals(possiblePairs, [
         [ "curiosity killed the cap be", "early bird catches the soli" ],
@@ -57,7 +66,7 @@ Deno.test("break two secret message", () => {
     ]);
 })
 
-Deno.test("break two secret messages (masked function)", () => {
+Deno.test("break two secret messages (masked function with no mask)", () => {
     const clear1 = "curiosity killed the cat hi";
     const clear2 = "early bird catches the worm";
     const keykey = "jvui dsoia rfesad ogra rsdy";

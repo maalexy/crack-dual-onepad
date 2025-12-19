@@ -1,6 +1,6 @@
 
 import { PrefixTree } from "../src/prefixtree.ts";
-import { assert, assertEquals, assertNotEquals, assertThrows } from "@std/assert";
+import { assert, assertEquals, assertThrows } from "@std/assert";
 
 Deno.test("load words.txt into a prefix tree", () => {
     PrefixTree.loadDefaultLanguage();

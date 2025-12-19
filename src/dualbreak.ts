@@ -38,11 +38,6 @@ export function walkbackLookbackArray(lbarr: Lookback[]) : DecrpytState[] {
     return lbarr.flatMap((lb) => walkbackLookback(lb));
 }
 
-function lookbackLength(lb: Lookback): number{
-    if(lb.prev.length == 0) return 0;
-    return lookbackLength(lb.prev[0]) + 1
-}
-
 export function dualFilterLanguage(language: PrefixTree, len: number,
     filterFun: (charPair: [EnglishChar, EnglishChar], index: number) => boolean) 
     : DualLookback[] {
@@ -72,13 +67,12 @@ export function dualFilterLanguage(language: PrefixTree, len: number,
     return possibilities;
 }
 
-export function singleContinuationFilterLanguage(lang: PrefixTree, len: number, startLen: number, prevLb: Lookback[],
+export function singleContinuationFilterLanguage(lang: PrefixTree, len: number, 
+    startLen: number, prevLb: Lookback[],
     filterFun: (char: EnglishChar, index: number) => boolean) {
 
-    //console.log(startLb);
-    let possibilities: SingleLookback[] = prevLb
+    let possibilities: Lookback[] = prevLb
     for(let ix = startLen; ix < len; ix++) {
-        //console.log(ix, " ", possibilities, " ", len);
         const nextPossibilities = new Map<PrefixIndex, SingleLookback>();
         for(const poss of possibilities) {
             for(const [nc, nsi] of lang.nexts(poss.si1)) {
@@ -91,22 +85,11 @@ export function singleContinuationFilterLanguage(lang: PrefixTree, len: number, 
                 }
             }
         }
-        possibilities = nextPossibilities.values().filter(({c1: c}) => filterFun(c, ix)).toArray();
-        //console.log(ix, " ", possibilities, " ", len);
+        possibilities = nextPossibilities.values().filter(
+            ({c1}) => filterFun(c1, ix)
+        ).toArray();
     }
     return possibilities;
-}
-
-export function unmaskedBreakTwo(lang: PrefixTree, secret1: string, secret2: string) {
-    if(secret1.length != secret2.length) throw Error("Diferring lengths");
-    const code1 = encodeMod27(secret1);
-    const code2 = encodeMod27(secret2);
-    const diff = code1.map((val, ix) => subMod27(val, code2[ix]));
-    const lbarr = dualFilterLanguage(lang, diff.length, ([c1, c2], ix) =>
-        subMod27(CHARCODE_TABLE[c1], CHARCODE_TABLE[c2]) == diff[ix]
-    )
-    const wl = walkbackLookbackArray(lbarr);
-    return wl;
 }
 
 // An english character or a '?' denoting un unknown character
@@ -146,9 +129,9 @@ export function breakTwo(lang: PrefixTree, secret1: string, secret2: string,
         && (mask2[ix] == '?' || mask2[ix] == c2)
     )
 
-    const lbcont= singleContinuationFilterLanguage(
+    const lbcont = singleContinuationFilterLanguage(
         lang, secret1.length, secret2.length, lbarr,
-        (c: EnglishChar, ix: number) => mask1[ix] == '?' || mask1[ix] == c);
+        (c1: EnglishChar, ix: number) => mask1[ix] == '?' || mask1[ix] == c1);
     const possibilities = walkbackLookbackArray(lbcont);
     return possibilities;
 }
