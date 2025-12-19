@@ -1,6 +1,11 @@
 import { addMod27, decodMod27, encodeMod27, isEnglishString, subMod27 } from "./charconverter.ts";
 
-
+/**
+ * Encrypts a text using one-pad encryption scheme
+ * @param text The clear text to encrypt.
+ * @param key The encryption key
+ * @returns The encrypted secret.
+ */
 export function encodeOnepad(text: string, key: string) : string {
     if(key.length < text.length) throw Error("Key is too short");
     key = key.substring(0, text.length);
@@ -14,6 +19,12 @@ export function encodeOnepad(text: string, key: string) : string {
     return decodMod27(coded);
 }
 
+/**
+ * Decrypts an encrypted text using one-pad encryption scheme
+ * @param secret The secret text to decrypt.
+ * @param key The encryption key
+ * @returns The decrypted text.
+ */
 export function decodeOnepad(secret: string, key: string) : string {
     if(secret.length > key.length) throw Error("Key is too short");
     key = key.substring(0, secret.length)

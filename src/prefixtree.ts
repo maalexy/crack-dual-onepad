@@ -63,7 +63,11 @@ export class PrefixTree {
         return curr;
     }
 
-    public static loadDefaultLanguage() {
+    /**
+     * Loads a word list from "./data/words.txt" into a prefix tree
+     * @returns A prefix tree built from the wordlist.
+     */
+    public static loadDefaultLanguage(): PrefixTree{
         const texfile = Deno.readTextFileSync("data/words.txt");
         const wordlist = texfile.split('\n');
         const sf = new PrefixTree();

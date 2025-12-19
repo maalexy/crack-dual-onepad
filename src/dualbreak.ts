@@ -92,9 +92,21 @@ export function singleContinuationFilterLanguage(lang: PrefixTree, len: number,
     return possibilities;
 }
 
+/**
+ * Creates a mask for secret text, if the beginnig of the clear text is knonw.
+ * @param clear The beginning of the clear text.
+ * @param secret The secret text.
+ * @returns The mask for the secret text with known beginning
+ */
 export function clearStartMask(clear: string, secret: string) {
     return clear.padEnd(secret.length, '?');
 }
+/**
+ * Creates a mask for secret text, if the end of the clear text is knonw.
+ * @param clear The end of the clear text.
+ * @param secret The secret text.
+ * @returns The mask for the secret text with known ending.
+ */
 export function clearEndMask(clear: string, secret: string) {
     return clear.padStart(secret.length, '?')
 }
@@ -102,6 +114,17 @@ function noMask(secret: string) {
     return '?'.repeat(secret.length);
 }
 
+/**
+ * Breaks two secret text encrypted with one-pad using the same key, 
+ * assuming the cleartext only uses words from the wordlist stored in `lang`.
+ * @param lang The wordlist stored in a prefix tree.
+ * @param secret1 The first secret text to break.
+ * @param secret2 The second secret text to break.
+ * @param masks An optional object for masks: 
+ *  `masks.mask1` for the first secret, 
+ *  `masks.mask2` for the second secret.
+ * @returns All possible decrypted text pairs in a list.
+ */
 export function breakTwo(lang: PrefixTree, secret1: string, secret2: string, 
     masks?: {mask1?: string, mask2?: string}): DecrpytState[] {
     if(secret1.length < secret2.length) {
