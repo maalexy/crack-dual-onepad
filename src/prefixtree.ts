@@ -8,6 +8,7 @@ export class PrefixTree {
 
     constructor() {
         this.data = new Map();
+        this.data.set('', new Map());
     }
 
     private getOrNew(si: PrefixIndex) : PrefixNode {
@@ -69,7 +70,7 @@ export class PrefixTree {
      */
     public static loadDefaultLanguage(): PrefixTree{
         const texfile = Deno.readTextFileSync("data/words.txt");
-        const wordlist = texfile.split('\n');
+        const wordlist = texfile.split('\n').filter((str) => str.length > 0);
         const sf = new PrefixTree();
         sf.addWordlist(wordlist);
         return sf;

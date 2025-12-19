@@ -8,33 +8,33 @@ import { CHARCODE_TABLE } from "../generated/charcode.g.ts";
 Deno.test("languge gen for 3 char", () => {
     const sf = PrefixTree.loadDefaultLanguage();
     const lbarr = dualFilterLanguage(sf, 3, () => true); // 27^6 ~= 387M
-    assertEquals(lbarr.length, 1493284); // 1.5M because of word constraints
+    assertEquals(lbarr.length, 1044484); // 1.5M because of word constraints
     const poss = walkbackLookbackArray(lbarr);
-    assertEquals(poss.length, 1721344); // 1.7M, bit more beacuse of merges
+    assertEquals(poss.length, 1170724); // 1.7M, bit more beacuse of merges
 });
 
 Deno.test("same languge gen for 6 char", () => {
     const sf = PrefixTree.loadDefaultLanguage();
     const lbarr = dualFilterLanguage(sf, 6, ([c1, c2]) => c1 == c2); // 27^6 ~= 387M
-    assertEquals(lbarr.length, 6029); // 6K
+    assertEquals(lbarr.length, 4353); // 6K
     const poss = walkbackLookbackArray(lbarr);
-    assertEquals(poss.length, 132877); // 132K "cat ??" and "dog ??" was unmerged at position 4
+    assertEquals(poss.length, 94714); // 132K "cat ??" and "dog ??" was unmerged at position 4
 });
 
 Deno.test("same languge gen for 2 char", () => {
     const sf = PrefixTree.loadDefaultLanguage();
     const lbarr = dualFilterLanguage(sf, 2, () => true); // 27^4 = 531K
-    assertEquals(lbarr.length, 51076); 
+    assertEquals(lbarr.length, 40401); 
     const poss = walkbackLookbackArray(lbarr);
-    assertEquals(poss.length, 51984); 
+    assertEquals(poss.length, 40804); 
 });
 
 Deno.test("single sentence geneartion", () => {
     const sf = PrefixTree.loadDefaultLanguage();
     const lbarr = singleContinuationFilterLanguage(sf, 8, 0, [{c1: ' ', si1: '', prev: []}], () => true);
-    assertEquals(lbarr.length, 7904);
+    assertEquals(lbarr.length, 6794);
     const poss = walkbackLookbackArray(lbarr);
-    assertEquals(poss.length, 3332249);
+    assertEquals(poss.length, 1966698);
 });
 
 Deno.test("break two secret message", () => {
