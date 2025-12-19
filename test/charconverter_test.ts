@@ -1,10 +1,10 @@
 import { assert, assertEquals } from "@std/assert";
-import { addMod27, decodMod27, encodeMod27, isEnglishChar, subMod27 } from "../src/charconverter.ts";
+import { addMod27, decodMod27, encodeMod27, EnglishString, isEnglishChar, isEnglishString, subMod27 } from "../src/charconverter.ts";
 import { assertThrows } from "@std/assert/throws";
 import { INDEX_CHAR, INDEX_MOD27 } from "../generated/charcode.g.ts";
 
 Deno.test("mod27 encode-decode-encode does not change", () => {
-    const start = "nagykutya es kiscica";
+    const start = "nagykutya es kiscica" as EnglishString;
     const encoded = encodeMod27(start);
     const decode = decodMod27(encoded);
     assertEquals(start, decode);
@@ -17,9 +17,9 @@ Deno.test("mod27 decode-encode-decode does not change", () => {
     assertEquals(start, encoded);
 })
 
-Deno.test("mod27 fail encode for unkown characters", () => {
+Deno.test("isEnglishString returns false for unknown characters", () => {
     const start = "árvíztűrő tükörfúrógép";
-    assertThrows(() => encodeMod27(start));
+    assert(!isEnglishString(start));
 })
 
 Deno.test("mod27 fail decode for bad code", () => {

@@ -1,5 +1,5 @@
 import { CHARCODE_TABLE } from "../generated/charcode.g.ts";
-import { encodeMod27, EnglishChar, Mod27Number, subMod27 } from "./charconverter.ts";
+import { encodeMod27, EnglishChar, isEnglishString, Mod27Number, subMod27 } from "./charconverter.ts";
 import { PrefixIndex, PrefixTree } from "./prefixtree.ts";
 
 type DualLookback = {
@@ -92,8 +92,6 @@ export function singleContinuationFilterLanguage(lang: PrefixTree, len: number,
     return possibilities;
 }
 
-// An english character or a '?' denoting un unknown character
-type MaskChar = EnglishChar | '?';
 export function clearStartMask(clear: string, secret: string) {
     return clear.padEnd(secret.length, '?');
 }
@@ -105,16 +103,21 @@ function noMask(secret: string) {
 }
 
 export function breakTwo(lang: PrefixTree, secret1: string, secret2: string, 
-    masks?: {mask1?: string, mask2?: string}) {
+    masks?: {mask1?: string, mask2?: string}): DecrpytState[] {
     if(secret1.length < secret2.length) {
         return breakTwo(lang, secret2, secret1, 
-            masks ? {mask1: masks.mask2, mask2: masks.mask1} : undefined)
-    }
+            masks ? {mask1: masks.mask2, mask2: masks.mask1} : undefined).map(
+                ([text2, text1]) => [text1, text2]
+            );
+    } // after that line secret1.length >= secret2.length
     masks ??= {};
     let {mask1, mask2} = masks;
     mask1 ??= noMask(secret1);
     mask2 ??= noMask(secret2);
-    if(secret1.length < secret2.length) throw Error("TODO: switch strings, first secret should be longer.");
+    if(!isEnglishString(secret1)) throw Error("First encrypted text conatins non-encodable characters");
+    if(!isEnglishString(secret2)) throw Error("Second encrypted text conatins non-encodable characters");
+    
+    
 
     const code1 = encodeMod27(secret1);
     const code2 = encodeMod27(secret2);
