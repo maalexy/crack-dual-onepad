@@ -1,16 +1,16 @@
 import { EnglishChar, isEnglishChar } from "./charconverter.ts";
 
-export type SuffixIndex = string;
-type SuffixNode = Map<EnglishChar, SuffixIndex>; // undefined means impossible step
+export type PrefixIndex = string;
+type PrefixNode = Map<EnglishChar, PrefixIndex>; // undefined means impossible step
 
-export class SuffixTree {
-    private data: Map<SuffixIndex, SuffixNode>;
+export class PrefixTree {
+    private data: Map<PrefixIndex, PrefixNode>;
 
     constructor() {
         this.data = new Map();
     }
 
-    private getOrNew(si: SuffixIndex) : SuffixNode {
+    private getOrNew(si: PrefixIndex) : PrefixNode {
         if(!this.data.has(si)) {
             this.data.set(si, new Map());
         }
@@ -37,23 +37,23 @@ export class SuffixTree {
         }
     }
 
-    getSafe(si: SuffixIndex) : SuffixNode {
+    getSafe(si: PrefixIndex) : PrefixNode {
         if(!this.data.has(si)) {
-            throw Error("Suffix index not found");
+            throw Error("Prefix index not found");
         }
         return this.data.get(si)!;
     }
 
-    nexts(si: SuffixIndex) {
+    nexts(si: PrefixIndex) {
         return this.getSafe(si).entries();
     }
 
-    isTerminal(si: SuffixIndex) {
+    isTerminal(si: PrefixIndex) {
         return this.getSafe(si).has(' '); // space char goes home, ends words
     }
 
-    head() : SuffixIndex { return "" };
-    walk(str: string) : SuffixIndex {
+    head() : PrefixIndex { return "" };
+    walk(str: string) : PrefixIndex {
         let curr = this.head();
         for(const char of str) {
             const nextMap = this.getSafe(curr) 
@@ -66,7 +66,7 @@ export class SuffixTree {
     public static loadDefaultLanguage() {
         const texfile = Deno.readTextFileSync("data/words.txt");
         const wordlist = texfile.split('\n');
-        const sf = new SuffixTree();
+        const sf = new PrefixTree();
         sf.addWordlist(wordlist);
         return sf;
     }

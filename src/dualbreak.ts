@@ -1,12 +1,12 @@
 import { CHARCODE_TABLE } from "../generated/charcode.g.ts";
 import { encodeMod27, EnglishChar, Mod27Number, subMod27 } from "./charconverter.ts";
-import { SuffixIndex, SuffixTree } from "./suffixtree.ts";
+import { PrefixIndex, PrefixTree } from "./prefixtree.ts";
 
 type DualLookback = {
     c1: EnglishChar, // char 1
     c2: EnglishChar, // char 2
-    si1: SuffixIndex, // suffix index 1
-    si2: SuffixIndex, // suffix index 2
+    si1: PrefixIndex, // prefix index 1
+    si2: PrefixIndex, // prefix index 2
     prev: DualLookback[], // [] is the terminator
 }
 
@@ -20,7 +20,7 @@ function walkbackDualLookback(lb : DualLookback) : [string, string][] {
 }
 export const walkbackMultiLookback = (lbarr : DualLookback[]): [string, string][] => lbarr.flatMap((lb) => walkbackDualLookback(lb));
 
-export function dualFilterLanguage(language: SuffixTree, len: number,
+export function dualFilterLanguage(language: PrefixTree, len: number,
     filterFun: (charPair: [EnglishChar, EnglishChar], index: number) => boolean) 
     : DualLookback[] {
     let possibilities : DualLookback[]= [{c1: ' ', si1: '', c2: ' ', si2: '', prev: []}]
@@ -53,7 +53,7 @@ export function dualFilterLanguage(language: SuffixTree, len: number,
 
 type SingleLookback = {
     c: EnglishChar, // current character
-    si: SuffixIndex, // current state
+    si: PrefixIndex, // current state
     prev: SingleLookback[], // [] is the terminator
 }
 export function walkbackSingleLookback(lb: SingleLookback) : string[] {
@@ -65,7 +65,7 @@ export function walkbackSingleLookback(lb: SingleLookback) : string[] {
     ));
 }
 export const walkbackMultiSingleLookback = (lbarr: SingleLookback[]) => lbarr.flatMap(lb => walkbackSingleLookback(lb));
-export function singleFilterLanguage(lang: SuffixTree, len: number, start?: string,
+export function singleFilterLanguage(lang: PrefixTree, len: number, start?: string,
     filterFun?: (char: EnglishChar, index: number) => boolean) {
     const startsi = start == undefined ? lang.head() : lang.walk(start);
     filterFun ??= () => true;
@@ -73,7 +73,7 @@ export function singleFilterLanguage(lang: SuffixTree, len: number, start?: stri
     let possibilities: SingleLookback[] = [{c: ' ', si: startsi, prev: []}]
     for(let ix = start?.length ?? 0; ix < len; ix++) {
         console.log(ix, start, " ", possibilities, " ", len);
-        const nextPossibilities = new Map<SuffixIndex, SingleLookback>();
+        const nextPossibilities = new Map<PrefixIndex, SingleLookback>();
         for(const poss of possibilities) {
             for(const [nc, nsi] of lang.nexts(poss.si)) {
                 if(nextPossibilities.has(nsi)) {
@@ -90,13 +90,13 @@ export function singleFilterLanguage(lang: SuffixTree, len: number, start?: stri
     }
     return possibilities;
 }
-export function extendPartialMatch(lang: SuffixTree, start: string, len: number, mask: string) {
+export function extendPartialMatch(lang: PrefixTree, start: string, len: number, mask: string) {
     const possibilitiesLb = singleFilterLanguage(lang, len, start, (c, ix) => mask[ix] == '?' || mask[ix] == c);
     const possibilities = walkbackMultiSingleLookback(possibilitiesLb);
     return possibilities;
 }
 
-export function breakTwo(lang: SuffixTree, secret1: string, secret2: string) {
+export function breakTwo(lang: PrefixTree, secret1: string, secret2: string) {
     if(secret1.length != secret2.length) throw Error("Diferring lengths");
     const code1 = encodeMod27(secret1);
     const code2 = encodeMod27(secret2);
@@ -120,7 +120,7 @@ function noMask(secret: string) {
     return '?'.repeat(secret.length);
 }
 
-export function maskedBreakTwo(lang: SuffixTree, secret1: string, secret2: string, 
+export function maskedBreakTwo(lang: PrefixTree, secret1: string, secret2: string, 
     masks?: {mask1?: string, mask2?: string, 
         maskFun?: (charPair: [EnglishChar, EnglishChar], index: number) => boolean}) {
     masks ??= {};

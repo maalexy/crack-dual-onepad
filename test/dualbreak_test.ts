@@ -1,10 +1,10 @@
 import { assertEquals } from "@std/assert/equals";
 import { breakTwo, clearEndMask, dualFilterLanguage, maskedBreakTwo, singleFilterLanguage, walkbackMultiLookback, walkbackMultiSingleLookback } from "../src/dualbreak.ts";
-import { SuffixTree } from "../src/suffixtree.ts";
+import { PrefixTree } from "../src/prefixtree.ts";
 import { encodeOnepad } from "../src/mod27onepad.ts";
 
 Deno.test("languge gen for 3 char", () => {
-    const sf = SuffixTree.loadDefaultLanguage();
+    const sf = PrefixTree.loadDefaultLanguage();
     const lbarr = dualFilterLanguage(sf, 3, () => true); // 27^6 ~= 387M
     assertEquals(lbarr.length, 1493284); // 1.5M because of word constraints
     const poss = walkbackMultiLookback(lbarr);
@@ -12,7 +12,7 @@ Deno.test("languge gen for 3 char", () => {
 });
 
 Deno.test("same languge gen for 6 char", () => {
-    const sf = SuffixTree.loadDefaultLanguage();
+    const sf = PrefixTree.loadDefaultLanguage();
     const lbarr = dualFilterLanguage(sf, 6, ([c1, c2]) => c1 == c2); // 27^6 ~= 387M
     assertEquals(lbarr.length, 6029); // 6K
     const poss = walkbackMultiLookback(lbarr);
@@ -20,7 +20,7 @@ Deno.test("same languge gen for 6 char", () => {
 });
 
 Deno.test("same languge gen for 2 char", () => {
-    const sf = SuffixTree.loadDefaultLanguage();
+    const sf = PrefixTree.loadDefaultLanguage();
     const lbarr = dualFilterLanguage(sf, 2, () => true); // 27^4 = 531K
     assertEquals(lbarr.length, 51076); 
     const poss = walkbackMultiLookback(lbarr);
@@ -28,7 +28,7 @@ Deno.test("same languge gen for 2 char", () => {
 });
 
 Deno.test("single sentence geneartion", () => {
-    const sf = SuffixTree.loadDefaultLanguage();
+    const sf = PrefixTree.loadDefaultLanguage();
     const lbarr = singleFilterLanguage(sf, 8);
     assertEquals(lbarr.length, 7904);
     const poss = walkbackMultiSingleLookback(lbarr);
@@ -41,7 +41,7 @@ Deno.test("break two secret messege", () => {
     const keykey = "jvui dsoia rfesad ogra rsdy";
     const secret1 = encodeOnepad(clear1, keykey);
     const secret2 = encodeOnepad(clear2, keykey);
-    const lang = SuffixTree.loadDefaultLanguage();
+    const lang = PrefixTree.loadDefaultLanguage();
     const possiblePairs = breakTwo(lang, secret1, secret2);
     
     assertEquals(possiblePairs, [
@@ -61,7 +61,7 @@ Deno.test("break two messeages with an additional mask", () => {
     const clear1 = "curiosity killed the cat";
     const clear2 = "early bird catches the worm";
     const keykey = "jvui dsoia rfesadbfb ogra rsdy";
-    const lang = SuffixTree.loadDefaultLanguage();
+    const lang = PrefixTree.loadDefaultLanguage();
     const secret1 = encodeOnepad(clear1, keykey);
     const secret2 = encodeOnepad(clear2, keykey);
 
