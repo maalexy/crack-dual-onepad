@@ -1,4 +1,4 @@
-export { decodeOnepad, encodeOnepad } from "./mod27onepad.ts";
+export { decodeOnepad, encodeOnepad } from "./onepad.ts";
 
 import { PrefixTree } from "./prefixtree.ts";
 export const loadDefaultLanguage = PrefixTree.loadDefaultLanguage;

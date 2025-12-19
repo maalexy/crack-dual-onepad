@@ -1,5 +1,4 @@
-import { CHARCODE_TABLE } from "../generated/charcode.g.ts";
-import { encodeMod27, EnglishChar, isEnglishString, Mod27Number, subMod27 } from "./charconverter.ts";
+import { EnglishChar, isEnglishCharArray, stringToCharArray, subFromTable } from "./charconverter.ts";
 import { PrefixIndex, PrefixTree } from "./prefixtree.ts";
 
 type DualLookback = {
@@ -92,14 +91,21 @@ export function singleContinuationFilterLanguage(lang: PrefixTree, len: number,
     return possibilities;
 }
 
+type MaskChar = EnglishChar | '?';
+type MaskCharArr = MaskChar[];
+
 /**
  * Creates a mask for secret text, if the beginnig of the clear text is knonw.
  * @param clear The beginning of the clear text.
  * @param secret The secret text.
  * @returns The mask for the secret text with known beginning
  */
-export function clearStartMask(clear: string, secret: string) {
-    return clear.padEnd(secret.length, '?');
+export function clearStartMask(clear: string, secret: string): MaskCharArr{
+    const clearArr = stringToCharArray(clear);
+    const secretArr = stringToCharArray(secret);
+    if(!isEnglishCharArray(clearArr)) throw Error("Clear mask contains non-english characters");
+    const resMask = new Array<MaskChar>(secretArr.length - clearArr.length).fill('?');
+    return (clearArr as MaskCharArr).concat(resMask);
 }
 /**
  * Creates a mask for secret text, if the end of the clear text is knonw.
@@ -107,11 +113,15 @@ export function clearStartMask(clear: string, secret: string) {
  * @param secret The secret text.
  * @returns The mask for the secret text with known ending.
  */
-export function clearEndMask(clear: string, secret: string) {
-    return clear.padStart(secret.length, '?')
+export function clearEndMask(clear: string, secret: string): MaskCharArr {
+    const clearArr = stringToCharArray(clear);
+    const secretArr = stringToCharArray(secret);
+    if(!isEnglishCharArray(clearArr)) throw Error("Clear mask contains non-english characters");
+    const resMask= new Array<MaskChar>(secretArr.length - clearArr.length).fill('?');
+    return resMask.concat(clearArr);
 }
-function noMask(secret: string) {
-    return '?'.repeat(secret.length);
+function noMask(secret: string): MaskCharArr {
+    return Array(stringToCharArray(secret).length).fill('?');
 }
 
 /**
@@ -126,7 +136,7 @@ function noMask(secret: string) {
  * @returns All possible decrypted text pairs in a list.
  */
 export function breakTwo(lang: PrefixTree, secret1: string, secret2: string, 
-    masks?: {mask1?: string, mask2?: string}): DecrpytState[] {
+    masks?: {mask1?: MaskCharArr, mask2?: MaskCharArr}): DecrpytState[] {
     if(secret1.length < secret2.length) {
         return breakTwo(lang, secret2, secret1, 
             masks ? {mask1: masks.mask2, mask2: masks.mask1} : undefined).map(
@@ -137,20 +147,19 @@ export function breakTwo(lang: PrefixTree, secret1: string, secret2: string,
     let {mask1, mask2} = masks;
     mask1 ??= noMask(secret1);
     mask2 ??= noMask(secret2);
-    if(!isEnglishString(secret1)) throw Error("First encrypted text conatins non-encodable characters");
-    if(!isEnglishString(secret2)) throw Error("Second encrypted text conatins non-encodable characters");
-    
-    
+    const sec1Arr = stringToCharArray(secret1);
+    const sec2Arr = stringToCharArray(secret2);
+    if(!isEnglishCharArray(sec1Arr)) {
+        throw Error("First encrypted text conatins non-encodable characters" + JSON.stringify(sec1Arr));
+    } 
+    if(!isEnglishCharArray(sec2Arr)) {
+        throw Error("Second encrypted text conatins non-encodable characters");
+    }    
 
-    const code1 = encodeMod27(secret1);
-    const code2 = encodeMod27(secret2);
-    const diffLen = code1.length < code2.length ? code1.length : code2.length;
-    const diff = Array<Mod27Number>(diffLen);
-    for(let ix = 0; ix < diffLen; ix++) {
-        diff[ix] = subMod27(code1[ix], code2[ix]);
-    }
-    const lbarrUnterm = dualFilterLanguage(lang, diffLen, ([c1, c2], ix) =>
-        (subMod27(CHARCODE_TABLE[c1], CHARCODE_TABLE[c2]) == diff[ix])
+    const commonLen = sec2Arr.length; // sec2 is shorter
+
+    const lbarrUnterm = dualFilterLanguage(lang, commonLen, ([c1, c2], ix) =>
+        (subFromTable(c1, c2) == subFromTable(sec1Arr[ix], sec2Arr[ix]))
         && (mask1[ix] == '?' || mask1[ix] == c1)
         && (mask2[ix] == '?' || mask2[ix] == c2)
     )

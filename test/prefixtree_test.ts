@@ -1,5 +1,4 @@
 
-import { singleContinuationFilterLanguage } from "../src/dualbreak.ts";
 import { PrefixTree } from "../src/prefixtree.ts";
 import { assert, assertEquals, assertThrows } from "@std/assert";
 

@@ -3,17 +3,7 @@ function generateCharcodeTable() {
     for(let cc = 97 /* unicode code of 'a' */; cc <= 122 /* code of 'z' */; cc++) {
         charcodeTable[String.fromCharCode(cc)] = cc - 97 // a: 0, b: 1, ..., z: 25
     }
-    const tscode = `export const CHARCODE_TABLE = ${JSON.stringify(charcodeTable)} as const;\n`;
-    return tscode;
-}
-
-function generateMod27List() {
-    const mod27list = [];
-    for(let i = 0; i <= 26; i++) {
-        mod27list.push(i);
-    }
-    const tscode = `export const INDEX_MOD27 = [${mod27list.join(',')}] as const;\n`;
-    return tscode;
+    return charcodeTable;
 }
 
 function generateIndexCharTable() {
@@ -22,14 +12,54 @@ function generateIndexCharTable() {
         indexCharTable.push(String.fromCharCode(97 + i));
     }
     indexCharTable.push(' ')
-    const tscode = `export const INDEX_CHAR = ['${indexCharTable.join("','")}'] as const;\n`;
-    return tscode;
+    return indexCharTable;
 }
 
-Deno.removeSync('generated', {recursive: true}); // clean
-Deno.mkdir('generated');
+function generateAddTable() {
+    const addTable : {[char: string]: {[char: string]: string}} = {};
+
+    const charcodeTable = generateCharcodeTable();
+    const indexCharTable = generateIndexCharTable();
+    const MOD = indexCharTable.length;
+    for(const ac of indexCharTable) {
+        addTable[ac] = {};
+        for(const bc of indexCharTable) {
+            const ax = charcodeTable[ac];
+            const bx = charcodeTable[bc];
+            const rx = (ax + bx) % MOD;
+            const rc = indexCharTable[rx];
+            addTable[ac][bc] = rc;
+        }
+    }
+    return addTable;
+}
+function generateSubTable() {
+    const subTable : {[char: string]: {[char: string]: string}} = {};
+
+    const charcodeTable = generateCharcodeTable();
+    const indexCharTable = generateIndexCharTable();
+    const MOD = indexCharTable.length;
+    for(const ac of indexCharTable) {
+        subTable[ac] = {};
+        for(const bc of indexCharTable) {
+            const ax = charcodeTable[ac];
+            const bx = charcodeTable[bc];
+            const rx = (ax - bx + MOD) % MOD;
+            const rc = indexCharTable[rx];
+            subTable[ac][bc] = rc;
+        }
+    }
+    return subTable;
+}
+
+function tsConstant(name: string, content: object) {
+    return `export const ${name} = ${JSON.stringify(content)} as const;\n`;
+}
+
 Deno.writeTextFileSync("generated/charcode.g.ts", 
-    generateCharcodeTable() +
-    generateMod27List() +
-    generateIndexCharTable()
+    tsConstant("CHARCODE_TABLE", generateCharcodeTable()) +
+    tsConstant("INDEX_CHAR", generateIndexCharTable()) +
+    tsConstant("ADD_TABLE", generateAddTable()) +
+    tsConstant("SUB_TABLE", generateSubTable()) +
+    ''
 );

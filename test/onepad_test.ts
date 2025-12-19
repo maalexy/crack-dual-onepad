@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert/equals";
-import { decodeOnepad, encodeOnepad } from "../src/mod27onepad.ts";
+import { decodeOnepad, encodeOnepad } from "../src/onepad.ts";
 
 Deno.test("onepad roundtrip test", () => {
     const text = "kiskutya nagycica";

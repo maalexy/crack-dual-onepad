@@ -1,9 +1,9 @@
 import { assertEquals } from "@std/assert/equals";
 import { clearEndMask, dualFilterLanguage, breakTwo, singleContinuationFilterLanguage, walkbackLookbackArray } from "../src/dualbreak.ts";
 import { PrefixTree } from "../src/prefixtree.ts";
-import { encodeOnepad } from "../src/mod27onepad.ts";
-import { encodeMod27, EnglishString, subMod27 } from "../src/charconverter.ts";
-import { CHARCODE_TABLE } from "../generated/charcode.g.ts";
+import { encodeOnepad } from "../src/onepad.ts";
+import { isEnglishCharArray, stringToCharArray, subFromTable } from "../src/charconverter.ts";
+import { assert } from "@std/assert/assert";
 
 Deno.test("languge gen for 3 char", () => {
     const sf = PrefixTree.loadDefaultLanguage();
@@ -45,11 +45,13 @@ Deno.test("break two secret message", () => {
     const secret2 = encodeOnepad(clear2, keykey);
     const lang = PrefixTree.loadDefaultLanguage();
     
-    const code1 = encodeMod27(secret1 as EnglishString);
-    const code2 = encodeMod27(secret2 as EnglishString);
-    const diff = code1.map((val, ix) => subMod27(val, code2[ix]));
+    const sec1Arr = stringToCharArray(secret1);
+    const sec2Arr = stringToCharArray(secret2);
+    assert(isEnglishCharArray(sec1Arr));
+    assert(isEnglishCharArray(sec2Arr));
+    const diff = sec1Arr.map((val, ix) => subFromTable(val, sec2Arr[ix]));
     const lbarr = dualFilterLanguage(lang, diff.length, ([c1, c2], ix) =>
-        subMod27(CHARCODE_TABLE[c1], CHARCODE_TABLE[c2]) == diff[ix]
+        subFromTable(c1, c2) == diff[ix]
     )
     const possiblePairs = walkbackLookbackArray(lbarr);
     

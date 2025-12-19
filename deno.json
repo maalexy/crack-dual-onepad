@@ -1,6 +1,7 @@
 {
   "tasks": {
-    "generate_tables": "deno run tools/generate_tables.ts",
+    "clean-generated": "deno run tools/clean_generated.ts",
+    "generate-tables": "deno run tools/generate_tables.ts",
     "generate-golden-decrypt": "deno run tools/generate_golden_decrypt.ts",
     "test-main": "deno test --allow-read test/main_test.ts",
     "test-all": "deno test --allow-read"
